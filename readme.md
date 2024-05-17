@@ -1,8 +1,4 @@
-# Spatial Statistics Lab Exercise
-
-This repository contains the R Markdown document and associated files for a spatial statistics lab exercise.
-
-## Overview
+# Overview
 In this lab exercise, we explore various spatial statistics techniques using R. The exercise covers topics such as loading spatial data, data preprocessing and projection, spatial weights matrix generation, global and local spatial autocorrelation analysis, Monte Carlo simulation, Empirical Bayes estimates, correlogram analysis, and tests for spatial clustering and dispersion.
 
 ## Files
