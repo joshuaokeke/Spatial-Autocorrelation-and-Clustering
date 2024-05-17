@@ -1,0 +1,523 @@
+---
+title: "*Spatial Statistics Lab 6*"
+author: '**Onyedikachi J Okeke**'
+date: "`r Sys.Date()`"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### **0.0 To Load the library**
+```{r,comment="",echo=TRUE,eval=FALSE}
+library(sp)
+library(spatstat)
+library(sf)
+library(spatstat.geom)
+library(ctv)
+library(terra)
+library(spdep)
+library(rgdal)
+library(rgdal)
+library(terra)
+library(RColorBrewer)
+library(classInt)
+
+```
+##### Library
+```{r,echo=F,results='Show', fig.show='hold',eval=T}
+library(sp)
+library(spatstat)
+library(sf)
+library(spatstat.geom)
+library(ctv)
+library(terra)
+library(spdep)
+library(rgdal)
+library(rgdal)
+library(terra)
+library(RColorBrewer)
+library(classInt)
+
+```
+
+### **Q1 Loading Sids data**
+```{r,comment="",echo=TRUE,eval=FALSE}
+# Define the file path
+file_path <- "C:/Spatial Statistics Labwork/Lab5Data/sids2.shp"
+
+# Import the shapefile
+sids <- st_read(file_path)
+
+class(sids)
+
+# Check the structure of the imported object
+str(sids)
+
+```
+##### Result
+```{r echo=FALSE, results='show', fig.show='hold', eval=TRUE, warning=FALSE, fig.width=6, fig.height=4}
+# Define the file path
+file_path <- "C:/Spatial Statistics Labwork/Lab5Data/sids2.shp"
+
+# Import the shapefile
+sids <- st_read(file_path)
+
+class(sids)
+
+# Check the structure of the imported object
+str(sids)
+
+```
+
+### **Check the projection of the shapefile**
+```{r,comment="",echo=TRUE,eval=FALSE}
+# Extract CRS information using st_crs()
+crs_info <- st_crs(sids)
+
+# Print CRS information
+print(crs_info)
+
+```
+##### Result
+```{r echo=FALSE, results='show', fig.show='hold', eval=TRUE, warning=FALSE, fig.width=6, fig.height=4}
+# Extract CRS information using st_crs()
+crs_info <- st_crs(sids)
+
+# Print CRS information
+print(crs_info)
+
+```
+
+### **Define the target CRS (NAD27 UTM Zone 17N**
+```{r,comment="",echo=TRUE,eval=FALSE}
+
+# Assign the coordinate system (WGS84)
+st_crs(sids) <- st_crs("+proj=longlat +ellps=WGS84")
+
+# Check the current CRS
+print(st_crs(sids))
+
+# Define the target CRS (NAD27 UTM Zone 17N)
+target_crs <- "+proj=utm +zone=17 +datum=NAD27"
+
+# Project the shapefile to the target CRS
+sids_projected <- st_transform(sids, target_crs)
+
+# Check the CRS of the projected shapefile
+print(st_crs(sids_projected))
+
+```
+##### Result
+```{r echo=FALSE, results='show', fig.show='hold', eval=TRUE, warning=FALSE, fig.width=6, fig.height=4}
+
+# Assign the coordinate system (WGS84)
+st_crs(sids) <- st_crs("+proj=longlat +ellps=WGS84")
+
+# Check the current CRS
+print(st_crs(sids))
+
+# Define the target CRS (NAD27 UTM Zone 17N)
+target_crs <- "+proj=utm +zone=17 +datum=NAD27"
+
+# Project the shapefile to the target CRS
+sids_NAD <- st_transform(sids, target_crs)
+
+# Check the CRS of the projected shapefile
+print(st_crs(sids_NAD))
+
+```
+
+### **#difine contiguity based neighbors**
+```{r,comment="",echo=TRUE,eval=FALSE}
+# Create Queen contiguity spatial weights matrix
+sids_nbq <- poly2nb(sids, queen = TRUE)
+# Check the summary of the spatial weights matrix
+summary(sids_nbq)
+
+# Create Queen (false) contiguity spatial weights matrix
+sids_nbr <- poly2nb(sids, queen = FALSE)
+# Check the summary of the spatial weights matrix
+summary(sids_nbr)
+
+coords <- st_coordinates(sids)
+
+# Check the number of neighborhoods in sids_nbq
+num_neighborhoods <- length(sids_nbq)
+
+# Check the number of coordinate pairs in coords
+num_coords <- nrow(coords)
+
+# Print out the counts for verification
+print(paste("Number of neighborhoods:", num_neighborhoods))
+print(paste("Number of coordinate pairs:", num_coords))
+```
+##### Result
+```{r echo=FALSE, results='show', fig.show='hold', eval=TRUE, warning=FALSE, fig.width=6, fig.height=4}
+# Create Queen contiguity spatial weights matrix
+sids_nbq <- poly2nb(sids, queen = TRUE)
+# Check the summary of the spatial weights matrix
+summary(sids_nbq)
+
+# Create Queen (false) contiguity spatial weights matrix
+sids_nbr <- poly2nb(sids, queen = FALSE)
+# Check the summary of the spatial weights matrix
+summary(sids_nbr)
+
+coords <- st_coordinates(sids)
+
+# Check the number of neighborhoods in sids_nbq
+num_neighborhoods <- length(sids_nbq)
+
+# Check the number of coordinate pairs in coords
+num_coords <- nrow(coords)
+
+# Print out the counts for verification
+print(paste("Number of neighborhoods:", num_neighborhoods))
+print(paste("Number of coordinate pairs:", num_coords))
+
+```
+
+### **Row-standardized weights matrix**
+
+```{r,comment="",echo=TRUE,eval=FALSE}
+#Row-standardized weights matrix
+sids_nbq_w<- nb2listw(sids_nbq)
+print(sids_nbq_w)
+sids_nbq_w$neighbours[1:5]
+
+```
+##### Result
+```{r echo=FALSE, results='show', fig.show='hold', eval=TRUE, warning=FALSE, fig.width=6, fig.height=4}
+#Row-standardized weights matrix
+sids_nbq_w<- nb2listw(sids_nbq)
+print(sids_nbq_w)
+sids_nbq_w$neighbours[1:5]
+
+```
+
+### **Binary Weights**
+```{r,comment="",echo=TRUE,eval=FALSE}
+#Binary Weights
+sids_nbq_wb<-nb2listw(sids_nbq, style="B")
+#examine the dataset
+summary (sids)
+
+```
+##### Result
+```{r echo=FALSE, results='show', fig.show='hold', eval=TRUE, warning=FALSE, fig.width=6, fig.height=4}
+#Binary Weights
+sids_nbq_wb<-nb2listw(sids_nbq, style="B")
+#examine the dataset
+summary (sids)
+
+```
+
+
+### **Plot the SIDR74 from 1974-1978**
+```{r,comment="",echo=TRUE,eval=FALSE}
+# If `sids` is an sf object, convert it to SpatialPolygonsDataFrame or similar
+if (class(sids)[1] == "sf") {
+    library(sf)
+    sids <- as(sids, "Spatial") # Converts sf object to sp class
+}
+
+if (!"SIDR74" %in% names(sids)) {
+    stop("Column 'SIDR74' does not exist in 'sids'")
+}
+
+spplot(sids, "SIDR74")
+
+```
+##### Result
+```{r echo=FALSE, results='show', fig.show='hold', eval=TRUE, warning=FALSE, fig.width=6, fig.height=4}
+# If `sids` is an sf object, convert it to SpatialPolygonsDataFrame or similar
+if (class(sids)[1] == "sf") {
+    library(sf)
+    sids <- as(sids, "Spatial") # Converts sf object to sp class
+}
+
+if (!"SIDR74" %in% names(sids)) {
+    stop("Column 'SIDR74' does not exist in 'sids'")
+}
+
+spplot(sids, "SIDR74")
+
+```
+
+### **Define a new lagged variable using row standardized weights**
+```{r,comment="",echo=TRUE,eval=FALSE}
+
+sids$SIDR74_lag1 <- lag(sids_nbq_w, sids$SIDR74)
+lm2 <- lm(sids$SIDR74_lag1~sids$SIDR74)
+lm2
+plot(y= sids$SIDR74_lag1, x= sids$SIDR74)
+title("The relationship between a variable \n and the lag of itself is moran's I")
+
+```
+##### Result
+```{r echo=FALSE, results='show', fig.show='hold', eval=TRUE, warning=FALSE, fig.width=6, fig.height=4}
+sids$SIDR74_lag1 <- lag(sids_nbq_w, sids$SIDR74)
+lm2 <- lm(sids$SIDR74_lag1~sids$SIDR74)
+lm2
+plot(y= sids$SIDR74_lag1, x= sids$SIDR74)
+title("The relationship between a variable \n and the lag of itself is moran's I")
+
+```
+
+Q1. What is the coefficient for variable SIDR74. What does this coefficient mean?
+
+### **Define a new lagged variable using row standardized weights**
+```{r,comment="",echo=TRUE,eval=FALSE}
+
+sids$SIDR74_lag1 <- lag(sids_nbq_w, sids$SIDR74)
+lm2 <- lm(sids$SIDR74_lag1~sids$SIDR74)
+lm2
+plot(y= sids$SIDR74_lag1, x= sids$SIDR74)
+title("The relationship between a variable \n and the lag of itself is moran's I")
+
+```
+##### Result
+```{r echo=FALSE, results='show', fig.show='hold', eval=TRUE, warning=FALSE, fig.width=6, fig.height=4}
+sids$SIDR74_lag1 <- lag(sids_nbq_w, sids$SIDR74)
+lm2 <- lm(sids$SIDR74_lag1~sids$SIDR74)
+lm2
+plot(y= sids$SIDR74_lag1, x= sids$SIDR74)
+title("The relationship between a variable \n and the lag of itself is moran's I")
+
+```
+
+### **Global moran’s I test**
+```{r,comment="",echo=TRUE,eval=FALSE}
+
+moran.test (sids$SIDR74, sids_nbq_w, randomisation = FALSE) # Moran I test under normality
+moran.test(sids$SIDR74, sids_nbq_wb) # Moran I test under randomization using binary weight
+
+```
+##### Result
+```{r echo=FALSE, results='show', fig.show='hold', eval=TRUE, warning=FALSE, fig.width=6, fig.height=4}
+
+moran.test (sids$SIDR74, sids_nbq_w, randomisation = FALSE) # Moran I test under normality
+moran.test(sids$SIDR74, sids_nbq_wb) # Moran I test under randomization using binary weight
+
+```
+
+Q2. What are the results (pattern)? Compare their test statistic, standard deviate, p-value, and variance.
+
+### **Monte-Carlo simulation of Moran’s I**
+```{r,comment="",echo=TRUE,eval=FALSE}
+
+set.seed(1234)
+permu<-moran.mc(sids$SIDR74, sids_nbq_w, nsim = 999)
+permu
+graph999 <- hist(permu$res,freq=TRUE,col="light blue",main="Permutation Test for Moran's I - 999 permutations")
+lines(permu$statistic,max(graph999$counts),type="h",col="red",lwd=2)
+
+```
+##### Result
+```{r echo=FALSE, results='show', fig.show='hold', eval=TRUE, warning=FALSE, fig.width=6, fig.height=4}
+
+set.seed(1234)
+permu<-moran.mc(sids$SIDR74, sids_nbq_w, nsim = 999)
+permu
+graph999 <- hist(permu$res,freq=TRUE,col="light blue",main="Permutation Test for Moran's I - 999 permutations")
+lines(permu$statistic,max(graph999$counts),type="h",col="red",lwd=2)
+
+```
+
+Q3.Explain the histogram.
+
+### **local Empirical Bayes estimates**
+```{r,comment="",echo=TRUE,eval=FALSE}
+
+set.seed(1234)
+EBImoran.mc(n = sids$SID74, x = sids$BIR74, sids_nbq_wb, nsim = 999)
+
+```
+##### Result
+```{r echo=FALSE, results='show', fig.show='hold', eval=TRUE, warning=FALSE, fig.width=6, fig.height=4}
+
+set.seed(1234)
+EBImoran.mc(n = sids$SID74, x = sids$BIR74, sids_nbq_wb, nsim = 999)
+
+```
+
+Q4. How is the result from this method different from previous results?
+
+### **Explore the Correlogram**
+```{r,comment="",echo=TRUE,eval=FALSE}
+
+cor8<-sp.correlogram(sids_nbq, sids$SIDR74, order=8, method="I")
+cor8
+plot(cor8)
+
+```
+##### Result
+```{r echo=FALSE, results='show', fig.show='hold', eval=TRUE, warning=FALSE, fig.width=6, fig.height=4}
+
+cor8<-sp.correlogram(sids_nbq, sids$SIDR74, order=8, method="I")
+cor8
+plot(cor8)
+
+```
+
+Q5.Explain the plot
+
+### **Explore the local Moran’ I**
+```{r,comment="",echo=TRUE,eval=FALSE}
+
+#First plot the moran scatterplot
+moran.plot(sids$SIDR74, sids_nbq_w)
+```
+##### Result
+```{r echo=FALSE, results='show', fig.show='hold', eval=TRUE, warning=FALSE, fig.width=6, fig.height=4}
+
+#First plot the moran scatterplot
+moran.plot(sids$SIDR74, sids_nbq_w)
+
+```
+
+Q6.Explain the plot
+
+### **LISA**
+```{r,comment="",echo=TRUE,eval=FALSE}
+
+locm <- localmoran(sids$SIDR74, sids_nbq_w) #Calculate the local Moran’s I
+locm
+summary(locm)
+sids$sSIDR74<-scale(sids$SIDR74) #Standardize it
+sids$lag_sSIDR74<-lag(sids_nbq_w, sids$sSIDR74) #Define a lag variable
+sids$sSIDR74
+sids$lag_sSIDR74
+sids$quad_sig <- NA #Define a new variable quad_sig and set the initial value to be NA
+#Next define five types of results: High-High, Low-Low, High-Low, Low-High, and not significant
+sids@data[(sids$sSIDR74>= 0 & sids$lag_sSIDR74>= 0) & (locm[,5]<= 0.05),"quad_sig"] <- 1
+sids@data[(sids$sSIDR74<= 0 & sids$lag_sSIDR74<= 0) & (locm[,5]<= 0.05),"quad_sig"] <- 2
+sids@data[(sids$sSIDR74>= 0 & sids$lag_sSIDR74<= 0) & (locm[,5]<= 0.05),"quad_sig"] <- 3
+sids@data[(sids$sSIDR74<= 0 & sids$lag_sSIDR74>= 0) & (locm[,5]<= 0.05),"quad_sig"] <- 4
+sids@data[locm[,5]> 0.05, "quad_sig"] <- 5
+
+```
+##### Result
+```{r echo=FALSE, results='show', fig.show='hold', eval=TRUE, warning=FALSE, fig.width=6, fig.height=4}
+
+locm <- localmoran(sids$SIDR74, sids_nbq_w) #Calculate the local Moran’s I
+locm
+summary(locm)
+sids$sSIDR74<-scale(sids$SIDR74) #Standardize it
+sids$lag_sSIDR74<-lag(sids_nbq_w, sids$sSIDR74) #Define a lag variable
+sids$sSIDR74
+sids$lag_sSIDR74
+sids$quad_sig <- NA #Define a new variable quad_sig and set the initial value to be NA
+#Next define five types of results: High-High, Low-Low, High-Low, Low-High, and not significant
+sids@data[(sids$sSIDR74>= 0 & sids$lag_sSIDR74>= 0) & (locm[,5]<= 0.05),"quad_sig"] <- 1
+sids@data[(sids$sSIDR74<= 0 & sids$lag_sSIDR74<= 0) & (locm[,5]<= 0.05),"quad_sig"] <- 2
+sids@data[(sids$sSIDR74>= 0 & sids$lag_sSIDR74<= 0) & (locm[,5]<= 0.05),"quad_sig"] <- 3
+sids@data[(sids$sSIDR74<= 0 & sids$lag_sSIDR74>= 0) & (locm[,5]<= 0.05),"quad_sig"] <- 4
+sids@data[locm[,5]> 0.05, "quad_sig"] <- 5
+
+```
+
+### **Plot the LISA Map**
+```{r,comment="",echo=TRUE,eval=FALSE}
+
+breaks <- seq(1, 5, 1)
+labels <- c("High-High", "Low-Low", "High-Low", "Low-High", "Not Signif.")
+np <- findInterval(sids$quad_sig, breaks)
+colors <- c("red", "blue", "lightpink", "skyblue2", "white")
+plot(sids, col = colors[np]) #colors[np] manually sets the color for each county
+mtext("Local Moran's I", cex = 1.5, side = 3, line = 1)
+legend("topleft", legend = labels, fill = colors, bty = "n")
+
+```
+##### Result
+```{r echo=FALSE, results='show', fig.show='hold', eval=TRUE, warning=FALSE, fig.width=6, fig.height=4}
+
+breaks <- seq(1, 5, 1)
+labels <- c("High-High", "Low-Low", "High-Low", "Low-High", "Not Signif.")
+np <- findInterval(sids$quad_sig, breaks)
+colors <- c("red", "blue", "lightpink", "skyblue2", "white")
+plot(sids, col = colors[np]) #colors[np] manually sets the color for each county
+mtext("Local Moran's I", cex = 1.5, side = 3, line = 1)
+legend("topleft", legend = labels, fill = colors, bty = "n")
+
+```
+
+Q7. Plot and explain the pattern.
+
+### **explore the Getis G**
+```{r,comment="",echo=TRUE,eval=FALSE}
+globalG.test(sids$SIDR74, sids_nbq_wb)
+
+```
+##### Result
+```{r echo=FALSE, results='show', fig.show='hold', eval=TRUE, warning=FALSE, fig.width=6, fig.height=4}
+globalG.test(sids$SIDR74, sids_nbq_wb)
+```
+
+Q8. What are your results and explain the pattern (clustered? Hotspot or cold spot?)
+
+### **Local Getis G**
+```{r,comment="",echo=TRUE,eval=FALSE}
+G <- localG(sids$SIDR74, sids_nbq_wb)
+par.G <- par(mfrow=c(1,1))
+# set the graphics parameters to display to maps on top of each other
+# in the same window
+brks <- seq(-4,6,1)
+# creates 10 intervals between -4 and +5
+# summary(G) the variable to be plotted has a low of -3.6 and high of 5.7
+cm.col <- cm.colors(length(brks)-1)
+# picks colors corresponding for each interval out of the "cm" color palette
+plot(sids,border="lightgray",col=cm.col[findInterval(G,brks,all.inside=TRUE)])
+# maps the shape file and fills each polygon with a color corresponding to
+# the level of G at that location
+text(coordinates(sids)[,1],coordinates(sids)[,2], round(G, digits=1), cex=0.5)
+# writes the G-statistic in each polygon
+title("Getis-Ord G statistic for sids")
+
+```
+##### Result
+```{r echo=FALSE, results='show', fig.show='hold', eval=TRUE, warning=FALSE, fig.width=6, fig.height=4}
+G <- localG(sids$SIDR74, sids_nbq_wb)
+par.G <- par(mfrow=c(1,1))
+# set the graphics parameters to display to maps on top of each other
+# in the same window
+brks <- seq(-4,6,1)
+# creates 10 intervals between -4 and +5
+# summary(G) the variable to be plotted has a low of -3.6 and high of 5.7
+cm.col <- cm.colors(length(brks)-1)
+# picks colors corresponding for each interval out of the "cm" color palette
+plot(sids,border="lightgray",col=cm.col[findInterval(G,brks,all.inside=TRUE)])
+# maps the shape file and fills each polygon with a color corresponding to
+# the level of G at that location
+text(coordinates(sids)[,1],coordinates(sids)[,2], round(G, digits=1), cex=0.5)
+# writes the G-statistic in each polygon
+title("Getis-Ord G statistic for sids")
+```
+
+Q9.Is it different from the LISA map in Q7? Why?
+
+### **Geary’s C**
+```{r,comment="",echo=TRUE,eval=FALSE}
+library(spdep)
+geary.test(sids$SIDR74, sids_nbq_wb, randomisation=FALSE)
+gc_perm <- geary.mc(sids$SIDR74, sids_nbq_wb, nsim=99)
+gc_perm
+
+```
+##### Result
+```{r echo=FALSE, results='show', fig.show='hold', eval=TRUE, warning=FALSE, fig.width=6, fig.height=4}
+library(spdep)
+geary.test(sids$SIDR74, sids_nbq_wb, randomisation=FALSE)
+gc_perm <- geary.mc(sids$SIDR74, sids_nbq_wb, nsim=99)
+gc_perm
+
+```
+
+Q10. What is the pattern? Are these results different? Explain the differences if any.
+
+
