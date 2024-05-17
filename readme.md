@@ -14,7 +14,7 @@ To run the lab exercise:
 
 1. Make sure you have R and RStudio installed on your computer.
 2. Clone or download this repository to your local machine.
-3. Open the `Spatial_Statistics_Lab6.Rmd` file in RStudio.
+3. Open the `Lab 6 Solutions.Rmd` file in RStudio.
 4. Install any required R packages mentioned in the document.
 5. Run the code chunks sequentially to execute the analysis steps.
 6. Read the explanations provided in the document to understand each step of the analysis.
